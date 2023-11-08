@@ -1,18 +1,30 @@
-{% extends 'base.html' %}
-{% block content %}
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for message in messages %}
-            {{message}}
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+{% extends 'base.html' %} {% block content %}
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages() %} {% if messages %} {% for message in
+messages %} {{message}} {% endfor %} {% endif %} {% endwith %}
+
 <h1>Home Page</h1>
+
+<!-- Checking if there are sessions -->
+{% if username %}
+
+<h1>Welcome to your home page {{username}}!</h1>
+<p>If you want to log out, press <a href="{{url_for('logout')}}">here</a>!</p>
+
+{% else %}
+
 <p>Before starting the Quiz let me ask you...</p>
+
 <div>
-    <p>Have an account? <a href="{{url_for('login')}}">Log in</a>!</p>
+  <p>Have an account? <a href="{{url_for('login')}}">Log in</a>!</p>
 </div>
+
 <div>
-    <p>Dont't have an account yet? <a href="{{url_for('register')}}">Join now</a> for free!</p>
+  <p>
+    Dont't have an account yet?
+    <a href="{{url_for('register')}}">Join now</a> for free!
+  </p>
 </div>
-{% endblock content %}
+
+{% endif %} {% endblock content %}
