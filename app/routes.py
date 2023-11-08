@@ -9,35 +9,41 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
-            flash("You've been logged in successfully!")
+    if session.get('id'):
+        return redirect(url_for('home'))
+    else:
+        form = LoginForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(email=form.email.data).first()
+            if user and bcrypt.check_password_hash(user.password, form.password.data):
+                flash("You've been logged in successfully!")
+                session['id'] = user.id
+                session['email'] = user.email
+                session['username'] = user.username
+                return redirect(url_for('home'))
+            else:
+                flash("Couldn't find the user. Please check your email and password.")
+        return render_template('login.html', title='Login', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if session.get('id'):
+        return redirect(url_for('home'))
+    else:
+        form = RegistrationForm()
+        if form.validate_on_submit():
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            user = User(username=form.username.data, 
+                        email=form.email.data,
+                        password=hashed_password)
+            db.session.add(user)
+            db.session.commit()
+            flash("You've been registered successfully!")
             session['id'] = user.id
             session['email'] = user.email
             session['username'] = user.username
             return redirect(url_for('home'))
-        else:
-            flash("Couldn't find the user. Please check your email and password.")
-    return render_template('login.html', title='Login', form=form)
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, 
-                    email=form.email.data,
-                    password=hashed_password)
-        db.session.add(user)
-        db.session.commit()
-        flash("You've been registered successfully!")
-        session['id'] = user.id
-        session['email'] = user.email
-        session['username'] = user.username
-        return redirect(url_for('home'))
-    return render_template('register.html', title='Register', form=form)
+        return render_template('register.html', title='Register', form=form)
 
 @app.route('/logout')
 def logout():
