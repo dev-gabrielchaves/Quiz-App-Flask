@@ -1,4 +1,5 @@
 from flask import render_template, redirect, url_for, flash, session
+import requests
 from app import app, bcrypt, db
 from app.forms import LoginForm, RegistrationForm
 from app.models import User
@@ -10,6 +11,7 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('id'):
+        flash('You are already logged in!')
         return redirect(url_for('home'))
     else:
         form = LoginForm()
@@ -28,6 +30,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if session.get('id'):
+        flash('You are already registered!')
         return redirect(url_for('home'))
     else:
         form = RegistrationForm()
@@ -49,3 +52,24 @@ def register():
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+@app.route('/quiz')
+def quiz():
+    if session.get('username'):
+        response = requests.get('https://opentdb.com/api.php?amount=10&category=9&difficulty=medium&type=multiple')
+        if response.status_code == 200:
+            response_dict = response.json()
+            results = response_dict['results']
+            questions = []
+            for result in results:
+                question = {}
+                question['question'] = result.get('question')
+                question['options'] = result.get('incorrect_answers')
+                question['options'].append(result.get('correct_answer'))
+                set_of_options = set(question['options'])
+                question['options'] = set_of_options
+                question['correct_answer'] = result.get('correct_answer')
+                questions.append(question)
+            return render_template('quiz.html', questions=questions)
+    flash('Before starting the Quiz, make sure to login or to subscribe!')
+    return redirect(url_for('login'))

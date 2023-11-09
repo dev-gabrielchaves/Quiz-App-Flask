@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Quiz Page!</h1>
+    {% for question in questions %}
+        <p>{{question.get('question')}}</p>
+        <ol>
+            {% for option in question.get('options') %}
+                <li>{{option}}</li>
+            {% endfor %}
+        </ol>
+    {% endfor %}
+{% endblock content %}

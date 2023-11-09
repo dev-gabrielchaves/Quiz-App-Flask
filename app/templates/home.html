@@ -11,7 +11,7 @@ messages %} {{message}} {% endfor %} {% endif %} {% endwith %}
 
 <h1>Welcome to your home page {{username}}!</h1>
 <p>If you want to log out, press <a href="{{url_for('logout')}}">here</a>!</p>
-
+<p>Click <a href="{{url_for('quiz')}}">here</a> to start the Quiz!</p>
 {% else %}
 
 <p>Before starting the Quiz let me ask you...</p>
