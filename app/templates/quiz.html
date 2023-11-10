@@ -1,12 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
     <h1>Quiz Page!</h1>
+    <form action="" method="POST">
     {% for question in questions %}
         <p>{{question.get('question')}}</p>
+        {% set i = loop.index0 %}
         <ol>
             {% for option in question.get('options') %}
-                <li>{{option}}</li>
+                <input type="radio" name="question-{{i}}" value="{{option}}"/>{{option}}<br/>
             {% endfor %}
         </ol>
     {% endfor %}
+    <button type="submit">Submit</button>
+    </form>
 {% endblock content %}
