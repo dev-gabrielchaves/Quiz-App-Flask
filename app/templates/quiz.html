@@ -7,7 +7,7 @@
         {% set i = loop.index0 %}
         <ol>
             {% for option in question.get('options') %}
-                <input type="radio" name="question-{{i}}" value="{{option}}"/>{{option}}<br/>
+                <input type="radio" name="question-{{i}}" value="{{option}}" required/>{{option}}<br/>
             {% endfor %}
         </ol>
     {% endfor %}

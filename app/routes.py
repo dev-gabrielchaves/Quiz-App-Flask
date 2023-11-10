@@ -2,12 +2,14 @@ from flask import render_template, redirect, url_for, flash, session, request
 import requests
 from app import app, bcrypt, db
 from app.forms import LoginForm, RegistrationForm
-from app.models import User
+from app.models import User, UserScore
+from sqlalchemy import func
 
 @app.route('/')
 def home():
     return render_template('home.html', title='Home', username=session.get('username'))
 
+# The next three routes are part of the authentication process
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('username'):
@@ -19,6 +21,7 @@ def login():
             user = User.query.filter_by(email=form.email.data).first()
             if user and bcrypt.check_password_hash(user.password, form.password.data):
                 flash("You've been logged in successfully!")
+                session['id'] = user.id
                 session['username'] = user.username
                 return redirect(url_for('home'))
             else:
@@ -40,6 +43,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             flash("You've been registered successfully!")
+            session['id'] = user.id
             session['username'] = user.username
             return redirect(url_for('home'))
         return render_template('register.html', title='Register', form=form)
@@ -71,6 +75,11 @@ def generate_quiz():
             questions.append(question)
         return questions
 
+# Function responsible for getting the average score of a user
+def get_average_score(user_id):
+    average_score = db.session.query(func.avg(UserScore.score)).filter_by(user_id=user_id).scalar()
+    return average_score
+
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
     if session.get('username'):
@@ -81,7 +90,15 @@ def quiz():
                 option_choosen = request.form.get(f'question-{i}')
                 if option_choosen == correct_answer:
                     score += 1
-            flash(f"You've made {score} question(s) out of 10!")
+            rate = score*10
+            flash(f"You've made {score} question(s) out of 10. Your rate score was {rate:.2f}%!")
+            # Adding new score to the table UserScore in the database
+            score = UserScore(score=rate, user_id=session['id'])
+            db.session.add(score)
+            db.session.commit()
+            # Getting the average score from the user in the session
+            avg = get_average_score(session['id'])
+            flash(f'Your overall average score is {avg:.2f}%!')
             return redirect(url_for('home'))
         # Generates a different Quiz each time is called
         elif request.method == 'GET':
